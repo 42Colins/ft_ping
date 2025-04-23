@@ -13,12 +13,12 @@ int main(int argc, char **argv)
 	data = parseInputs(argv, argc);
 	if (!data)
 		return (1);
-	answer = ping_init(data, answer);
-    signal(SIGINT, handle_sigint);
+	answer = initPing(data, answer);
+    signal(SIGINT, handleSignal);
     while (true)
     {
-        send_ping(data, answer);
-        receive_ping(data, answer);
+        sendPing(data, answer);
+        receivePing(data, answer);
         printPing(answer);
 		if (!answer->timeout)
 	        sleep(1);

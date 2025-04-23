@@ -25,7 +25,9 @@ SRCS =			$(DIR_SRCS)main.c \
 				$(DIR_SRCS)ping.c \
 				$(DIR_SRCS)print.c \
 				$(DIR_SRCS)time.c \
-				$(DIR_SRCS)signals.c
+				$(DIR_SRCS)signals.c \
+				$(DIR_SRCS)init.c \
+				$(DIR_SRCS)free.c
  
  OBJS = $(patsubst %.c, $(DIR_OBJ)%.o, $(SRCS))
 
