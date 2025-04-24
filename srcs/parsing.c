@@ -30,8 +30,10 @@ t_ping *parseInputs(char **argv, int argc)
 					free(parsee);
 					return (NULL);
 				}
-				if (argv[i][1] == 'v')
+				else if (argv[i][1] == 'v')
+				{
 					parsee->verbose = true;
+				}
 				if (parsee->gotFlag == 0)
 				{
 					parsee->option = argv[i];

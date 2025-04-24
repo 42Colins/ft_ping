@@ -12,6 +12,7 @@ t_answer *initPing(t_ping *ping, t_answer *answer)
 
 void    initAnswer(t_answer *answer, t_ping *ping)
 {
+	answer->verbose = ping->verbose;
     answer->bytes_sent = PACKET_SIZE;
     answer->address = ping->address;
     answer->icmp_ind = 0;
@@ -23,6 +24,7 @@ void    initAnswer(t_answer *answer, t_ping *ping)
     answer->min_time = 0;
     answer->max_time = 0;
     answer->total_time = 0;
+	answer->id = getpid();
     setSocket(answer, ping);
     getAddress(answer, ping);
     getDnsAddress(answer, ping);
@@ -30,7 +32,7 @@ void    initAnswer(t_answer *answer, t_ping *ping)
 
 void    setSocket(t_answer *answer, t_ping *ping)
 {
-    int ttl = 64;
+    int ttl = 1;
     struct timeval error;
     error.tv_sec = 1;
     error.tv_usec = 0;
@@ -39,6 +41,7 @@ void    setSocket(t_answer *answer, t_ping *ping)
     if (setsockopt(answer->socketFd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
         freeDuringInit(answer, ping);
     answer->ttl = ttl;
+	printf("set socket %d\n", answer->ttl);
     answer->packet = malloc(PACKET_SIZE);
     if (!answer->packet)
         freeDuringInit(answer, ping);

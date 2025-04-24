@@ -49,10 +49,19 @@ void    receivePing(t_ping *ping, t_answer *answer)
         get_time(answer);
         set_round_trip(answer);
         answer->timeout = false;
-        struct ip *ip_header = (struct ip *)recv_packet;
-        int ip_header_len = ip_header->ip_hl * 4;
-        answer->ttl = ip_header->ip_ttl;
+        answer->ip = (struct ip *)recv_packet;
+        int ip_header_len = answer->ip->ip_hl * 4;
         answer->icmp = (struct icmp_header *)(recv_packet + ip_header_len);
-        answer->packets_received++;
+        checkIcmpType(answer);
 	}
+}
+
+void    checkIcmpType(t_answer *answer)
+{
+    if (answer->icmp->type == 11) {
+        answer->packet_loss++;
+        answer->timeout = true;
+    }
+    else
+        answer->packets_received++;
 }

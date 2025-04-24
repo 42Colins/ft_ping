@@ -1,5 +1,27 @@
 #include "ft_ping.h"
 
+#define NITEMS(x) (sizeof(x) / sizeof(x[0]))
+
+icmp_codes_t icmp_code_description[] = {
+        {ICMP_DEST_UNREACH, ICMP_NET_UNREACH, "Destination Net Unreachable"},
+        {ICMP_DEST_UNREACH, ICMP_HOST_UNREACH, "Destination Host Unreachable"},
+        {ICMP_DEST_UNREACH, ICMP_PROT_UNREACH, "Destination Protocol Unreachable"},
+        {ICMP_DEST_UNREACH, ICMP_PORT_UNREACH, "Destination Port Unreachable"},
+        {ICMP_DEST_UNREACH, ICMP_FRAG_NEEDED, "Fragmentation needed and DF set"},
+        {ICMP_DEST_UNREACH, ICMP_SR_FAILED, "Source Route Failed"},
+        {ICMP_DEST_UNREACH, ICMP_NET_UNKNOWN, "Network Unknown"},
+        {ICMP_DEST_UNREACH, ICMP_HOST_UNKNOWN, "Host Unknown"},
+        {ICMP_DEST_UNREACH, ICMP_HOST_ISOLATED, "Host Isolated"},
+        {ICMP_DEST_UNREACH, ICMP_NET_UNR_TOS, "Destination Network Unreachable At This TOS"},
+        {ICMP_DEST_UNREACH, ICMP_HOST_UNR_TOS, "Destination Host Unreachable At This TOS"},
+        {ICMP_REDIRECT, ICMP_REDIR_NET, "Redirect Network"},
+        {ICMP_REDIRECT, ICMP_REDIR_HOST, "Redirect Host"},
+        {ICMP_REDIRECT, ICMP_REDIR_NETTOS, "Redirect Type of Service and Network"},
+        {ICMP_REDIRECT, ICMP_REDIR_HOSTTOS, "Redirect Type of Service and Host"},
+        {ICMP_TIME_EXCEEDED, ICMP_EXC_TTL, "Time to live exceeded"},
+        {ICMP_TIME_EXCEEDED, ICMP_EXC_FRAGTIME, "Frag reassembly time exceeded"}};
+
+
 void	initPrint(t_answer *ping)
 {
 	printf("PING %s (%s): %d data bytes\n", ping->address, ping->addressN, ping->bytes_sent - 8);
@@ -10,26 +32,58 @@ void	endPrint(t_answer *ping)
 	printf("--- %s ping statistics ---\n", ping->address);
 	printf("%d packets transmitted, %d packets received, %u%% packet loss, time %f\n", ping->packets_transmitted, ping->packets_received, (ping->packets_transmitted - ping->packets_received) * 100 / ping->packets_transmitted, ping->total_time);
 	if (((ping->packets_transmitted - ping->packets_received) * 100 / ping->packets_transmitted) != 100)
-		printf("round-trip min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n", ping->min_time, ping->total_time / ping->packets_received, ping->max_time, ping->mdev);
+		printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n", ping->min_time, ping->total_time / ping->packets_received, ping->max_time, ping->stddev);
 }
 
 void	printPing(t_answer *ping)
 {
 	if (!ping->timeout)
-		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n", ping->bytes_sent, ping->reversednsAddress, ping->icmp_ind, ping->ttl, ping->time);
-	else
+		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n", ping->bytes_sent, ping->addressN, ping->icmp_ind, ping->ip->ip_ttl, ping->time);
+	else if (ping->timeout && !ping->verbose)
 		printf("Request timeout for icmp_seq %d\n", ping->icmp_ind);
+	else if (ping->timeout && ping->verbose)
+		printVerbosePing(ping);
 }
 
 void	printVerbosePing(t_answer *ping)
 {
-	printf("ICMP: type=%d, code=%d, checksum=%d\n", 
-		ping->icmp_ind >> 8, ping->icmp_ind & 0xFF, ping->ttl);
-	printf("IP: ttl=%d, protocol=%d, length=%d\n", 
-		ping->ttl, IPPROTO_ICMP, ping->bytes_sent);
+	ping->icmp_type = ping->icmp->type;
+	ping->icmp_code = ping->icmp->code;
+	uint16_t off  = ntohs(ping->ip->ip_off);
+	uint8_t  flags = off >> 13;         // top 3 bits
+	uint16_t frag  = off & 0x1FFF;      // low 13 bits
+	uint16_t len   = ntohs(ping->ip->ip_len);
+	uint16_t id    = ntohs(ping->ip->ip_id);
+	uint16_t cksum = ntohs(ping->ip->ip_sum);
+	
+	char *src = malloc(16);
+    sprintf(src, "%02x%02x %02x%02x", ping->ip->ip_src.s_addr & 0xff, (ping->ip->ip_src.s_addr >> 8) & 0xff, (ping->ip->ip_src.s_addr >> 16) & 0xff,  (ping->ip->ip_src.s_addr >> 24) & 0xff);
+	char *dst = malloc(16);
+    sprintf(dst, "%02x%02x %02x%02x", ping->ip->ip_dst.s_addr & 0xff, (ping->ip->ip_dst.s_addr >> 8) & 0xff, (ping->ip->ip_dst.s_addr >> 16) & 0xff,  (ping->ip->ip_dst.s_addr >> 24) & 0xff);
+
+	printf("%d bytes from %s: %s\n", ping->bytes_sent, ping->addressN, get_icmp_description(ping->icmp_type, ping->icmp_code));
+	printf("IP Hdr Dump :\n");
+	printf("%-1x%-1x %-2x 00%-2x %-4x %-1x%-1x%-2x%-2x%-2x %s %s\n", \
+    ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, 64, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, src, dst);
+	printf("Vr   HL   TOS  Len    ID     Flg   off   TTL    Pro    cks      Src	      Dst	Data\n");
+	printf("%-4u %-4u %-4u %-6u %-5u   %-4u %-5u %-4u    %-2u   %#6x  %-15s%-15s\n", \
+	ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, len, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, inet_ntoa(ping->ip->ip_src),ping->addressN);
+	printf("ICMP : type %d, code %d, size %d, id 0x%-4x, seq 0x%-4x\n", ping->icmp_type, ping->icmp_code, PACKET_SIZE, ping->id, ping->icmp_ind);
+	free(src);
+	free(dst);
 }
 
 void	printHelpPing(void)
 {
 	printf("usage: ping [options] destination\n            -v:	verbose output\n");
+}
+
+char *get_icmp_description(int type, int code) {
+    icmp_codes_t *p;
+    for (p = icmp_code_description; p < icmp_code_description + NITEMS(icmp_code_description); p++) {
+        if (p->type == type && p->code == code) {
+            return p->diag;
+        }
+    }
+    return NULL;
 }

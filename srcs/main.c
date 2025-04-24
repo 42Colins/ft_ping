@@ -22,6 +22,8 @@ int main(int argc, char **argv)
         printPing(answer);
 		if (!answer->timeout)
 	        sleep(1);
+		else if (answer->timeout && answer->ttl == 1)
+			sleep(1);
         answer->icmp_ind++;
     }
 	return 0;
