@@ -29,6 +29,7 @@ void	initPrint(t_answer *ping)
 
 void	endPrint(t_answer *ping)
 {
+	calculate_stddev(ping);
 	printf("--- %s ping statistics ---\n", ping->address);
 	printf("%d packets transmitted, %d packets received, %u%% packet loss, time %f\n", ping->packets_transmitted, ping->packets_received, (ping->packets_transmitted - ping->packets_received) * 100 / ping->packets_transmitted, ping->total_time);
 	if (((ping->packets_transmitted - ping->packets_received) * 100 / ping->packets_transmitted) != 100)
@@ -38,7 +39,7 @@ void	endPrint(t_answer *ping)
 void	printPing(t_answer *ping)
 {
 	if (!ping->timeout)
-		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n", ping->bytes_sent, ping->addressN, ping->icmp_ind, ping->ip->ip_ttl, ping->time);
+		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n", ping->bytes_sent, ping->addressN, ping->icmp_ind, ping->ttl, ping->time);
 	else if (ping->timeout && !ping->verbose)
 		printf("Request timeout for icmp_seq %d\n", ping->icmp_ind);
 	else if (ping->timeout && ping->verbose)
@@ -56,6 +57,7 @@ void	printVerbosePing(t_answer *ping)
 	uint16_t id    = ntohs(ping->ip->ip_id);
 	uint16_t cksum = ntohs(ping->ip->ip_sum);
 	
+	ping->verboseError = true;
 	char *src = malloc(16);
     sprintf(src, "%02x%02x %02x%02x", ping->ip->ip_src.s_addr & 0xff, (ping->ip->ip_src.s_addr >> 8) & 0xff, (ping->ip->ip_src.s_addr >> 16) & 0xff,  (ping->ip->ip_src.s_addr >> 24) & 0xff);
 	char *dst = malloc(16);
@@ -75,7 +77,7 @@ void	printVerbosePing(t_answer *ping)
 
 void	printHelpPing(void)
 {
-	printf("usage: ping [options] destination\n            -v:	verbose output\n");
+	printf("usage: ping [options] destination\nSend ICMP ECHO_REQUEST packets to network hosts.\n\n Options valid for all request types:\n\n-v                     verbose output\n--ttl=N                specify N as time-to-live\n--interval=NUMBER      wait NUMBER seconds between sending each packet\n--count=n              stop after sending count ECHO_REQUEST packets\n");
 }
 
 char *get_icmp_description(int type, int code) {
@@ -86,4 +88,11 @@ char *get_icmp_description(int type, int code) {
         }
     }
     return NULL;
+}
+
+void	calculate_stddev(t_answer *ping)
+{
+	double mean = ping->total_time / ping->packets_received;
+	double var = ping->total_time_squared / ping->packets_received - mean * mean;
+	ping->stddev = sqrt(var);
 }

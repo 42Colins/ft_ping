@@ -23,6 +23,7 @@ void    set_round_trip(t_answer *answer)
 {
     answer->time_array = realloc(answer->time_array, answer->icmp_ind * sizeof(double));
     answer->total_time += answer->time;
+	answer->total_time_squared += answer->time * answer->time;
     if (answer->icmp_ind == 0)
     {   
         answer->min_time = answer->time;

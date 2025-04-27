@@ -14,7 +14,14 @@
 # include <net/if.h>
 # include <netinet/ip.h>
 # include <math.h>
+# include <unistd.h>
+# include <getopt.h>
 
+// Argument parser structure
+struct arguments {
+    bool verbose;
+    char *address;
+};
 
 // ICMP TYPES AND CODES BECAUSE THE NETINET/IP_ICMP.H IS NOT WORKING THE SAME ON MACOS
 
@@ -69,13 +76,17 @@
 
 typedef struct s_ping
 {
+	int  ttl;
 	bool verbose;
+	bool isCount;
 	char *address;
 	char *option;
 	char *option2;
 	bool gotAddress;
 	int  gotFlag;
 	bool error;
+	double  interval;
+	unsigned int  count;
 }	t_ping;
 
 typedef struct s_answer
@@ -96,13 +107,14 @@ typedef struct s_answer
 	double time;
 	double *time_array;
 	bool verbose;
-	char *verboseError;
+	bool verboseError;
 	struct sockaddr_in dest;
     unsigned int packets_transmitted;
     unsigned int packets_received;
     double min_time;
     double max_time;
     double total_time;
+	double total_time_squared;
     double mdev;
 	double med_time;
 	double stddev;
@@ -129,10 +141,10 @@ typedef struct icmp_codes_s {
 
 // PARSING
 t_ping *parseInputs(char **argv, int argc);
-bool isFlag(char *str);
-bool	isValidFlag(char *str);
+bool	isTtl(char *str);
 bool	isAddress(char *str);
-
+bool	isInterval(char *str);
+bool	isCount(char *str);
 
 // TIME
 bool	get_time(t_answer *ping);
@@ -146,6 +158,7 @@ void	printPing(t_answer *ping);
 void	printVerbosePing(t_answer *ping);
 void	printHelpPing(void);
 char	*get_icmp_description(int type, int code);
+void	calculate_stddev(t_answer *ping);
 
 // INIT
 void    setSocket(t_answer *answer, t_ping *ping);
@@ -165,5 +178,6 @@ void    handleSignal(int signal);
 
 // FREE
 void	freeDuringInit(t_answer *answer, t_ping *ping);
+void	exitOnCount(t_answer *answer);
 
 #endif

@@ -20,10 +20,13 @@ int main(int argc, char **argv)
         sendPing(data, answer);
         receivePing(data, answer);
         printPing(answer);
-		if (!answer->timeout)
-	        sleep(1);
-		else if (answer->timeout && answer->ttl == 1)
-			sleep(1);
+		if (data->isCount)
+		{
+			if (answer->icmp_ind + 1 == data->count)
+				exitOnCount(answer);
+		}
+		if (!answer->timeout || answer->verboseError)
+	        sleep(data->interval);
         answer->icmp_ind++;
     }
 	return 0;

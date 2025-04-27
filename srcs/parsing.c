@@ -2,86 +2,90 @@
 
 t_ping *parseInputs(char **argv, int argc)
 {
-	t_ping *parsee;
-	parsee = malloc(sizeof(t_ping));
-	parsee->gotAddress = 0;	
-	parsee->gotFlag = 0;
-	parsee->error = 0;
-	parsee->verbose = false;
-	for (int i = 1; i < argc; i++)
-	{
-		if (!isValidFlag(argv[i]) && !isAddress(argv[i]))
-			if (!parsee->gotAddress && !isFlag(argv[i]))
-			{	
-				dprintf(2, "ft_ping : cannot resolve %s : Unknown host\n", argv[i]);
-				parsee->error = 1;
-			}
-			else
+    t_ping *parsee;
+    bool verbose = false;
+    char *address = NULL;
+    int i = 1;
+	int ttl = 1;
+	int interval = 1;
+	int count = 0;
+
+    while (i < argc) {
+        if (argv[i][0] == '-') {
+            if (strcmp(argv[i], "-v") == 0) {
+                verbose = true;
+            }
+            if (strcmp(argv[i], "-?") == 0){
+                printHelpPing();
+                return NULL;
+            }
+			if (strncmp(argv[i], "--ttl=", 6) == 0)
 			{
-				dprintf(2, "ft_ping : unknown flag %s\n", argv[i]);
-				parsee->error = 1;
+				if (strlen(argv[i]) > 6 && isTtl(argv[i]))
+				{
+					ttl = atoi(&argv[i][6]);
+					if (ttl < 1)
+						printf("ft_ping: option value too small: %d\n", ttl);
+					else if (ttl > 255)
+						printf("ft_ping: option value too big: %d\n", ttl);
+				}
+				else if (strlen(argv[i]) > 6 && !isTtl(argv[i]))
+				{
+					printf("ft_ping: invalid ttl: %s\n", &argv[i][5]);
+					return NULL;
+				}
+				else if (strlen(argv[i]) == 5)
+					printf("ft_ping: option value too small:\n");
 			}
-		else
-			if (isValidFlag(argv[i]))
+			if (strncmp(argv[i], "--interval=", 11) == 0)
 			{
-				if (argv[i][1] == '?')
-				{
-					printHelpPing();
-					free(parsee);
-					return (NULL);
-				}
-				else if (argv[i][1] == 'v')
-				{
-					parsee->verbose = true;
-				}
-				if (parsee->gotFlag == 0)
-				{
-					parsee->option = argv[i];
-				}
-				else if (parsee->gotFlag == 1)
-				{
-					parsee->option2 = argv[i];
-				}
-				else
-				{
-					dprintf(2, "ft_ping : too much options \n");
-					parsee->error = 1;
-				}
-				parsee->gotFlag += 1;
+				if (strlen(argv[i]) > 11 && isInterval(argv[i]))
+					interval = atof(&argv[i][11]);
+				else if (strlen(argv[i]) > 11 && !isInterval(argv[i]))
+					printf("ft_ping: invalid interval: %s\n", &argv[i][11]);
 			}
-			else if (isAddress(argv[i]))
-				parsee->address = argv[i];
-				
-	}
-	if (parsee->error == 1)
+			if (strncmp(argv[i], "--count=", 8) == 0)
+			{
+				if (strlen(argv[i]) > 8 && isCount(argv[i]))
+					count = (unsigned int) atoi(&argv[i][8]);
+				else if (strlen(argv[i]) > 8 && !isCount(argv[i]))
+					printf("ft_ping: invalid count: %s\n", &argv[i][8]);
+				else if (strlen(argv[i]) == 8)
+					continue;
+			}
+        }
+        else if (!address) {
+            address = argv[i];
+        }
+        i++;
+    }
+    if (!address) {
+        dprintf(2, "ft_ping: missing host operand\n");
+        return NULL;
+    }
+    if (!isAddress(address)) {
+        dprintf(2, "ft_ping : cannot resolve %s : Unknown host\n", address);
+        return NULL;
+    }
+    parsee = malloc(sizeof(t_ping));
+    if (!parsee)
+        return NULL;
+	parsee->isCount = false;
+	if (count > 0)
 	{
-		free (parsee);
-		return NULL;
+		parsee->isCount = true;
+		parsee->count = count;
 	}
-	return parsee;
+    parsee->verbose = verbose;
+    parsee->address = address;
+    parsee->gotAddress = 1;
+    parsee->error = 0;
+	parsee->ttl = ttl;
+	parsee->interval = interval;
+    return parsee;
 }
 
-bool	isFlag(char *str)
-{
-	if (str[0] == '-')
-		return true;
-	return false;
-}
-
-bool	isValidFlag(char *str)
-{
-	if (!str)
-		return false;
-	if (strlen(str) > 2)
-		return false;
-	if (str[0] != '-')
-		return false;
-	if (str[1] == 'v' || str[1] == '?')
-		return true;
-	return false;
-}
-
-bool	isAddress(char *str)
+bool isAddress(char *str)
 {
     struct addrinfo hints;
     struct addrinfo *res;
@@ -91,8 +95,63 @@ bool	isAddress(char *str)
 
     int status = getaddrinfo(str, NULL, &hints, &res);
     if (status != 0)
-	    return 0;
+        return 0;
 
     freeaddrinfo(res);
     return 1;
+} 
+
+bool isTtl(char *str)
+{
+	if (strlen(str) > 5)
+	{
+		for (unsigned long i = 6; i < strlen(str); i++)
+		{
+			if (!ft_isdigit(str[i]))
+				return false;
+		}
+		return true;
+	}
+	else
+		return false;
+}
+
+bool isInterval(char *str)
+{
+	int dot = 0;
+	if (strlen(str) > 11)
+	{
+		for (unsigned long i = 11; i < strlen(str); i++)
+		{
+			if (!ft_isdigit(str[i]))
+			{
+				if (str[i] == '.')
+				{
+					if (dot > 0)
+						return false;
+					dot++;
+					continue;
+				}	
+				return false;
+			}
+		}
+		return true;
+	}
+	else
+		return false;
+}
+
+bool isCount(char *str)
+{
+	if (strlen(str) > 8)
+	{
+		for (unsigned long i = 8; i < strlen(str); i++)
+		{
+			if (!ft_isdigit(str[i]))
+				return false;
+		}
+		return true;
+	}
+	else
+		return false;
 }
