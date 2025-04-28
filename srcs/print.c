@@ -24,7 +24,7 @@ icmp_codes_t icmp_code_description[] = {
 
 void	initPrint(t_answer *ping)
 {
-	printf("PING %s (%s): %d data bytes\n", ping->address, ping->addressN, ping->bytes_sent - 8);
+	printf("PING %s (%s): %d data bytes\n", ping->address, ping->addressN, ping->size - 8);
 }
 
 void	endPrint(t_answer *ping)
@@ -39,7 +39,7 @@ void	endPrint(t_answer *ping)
 void	printPing(t_answer *ping)
 {
 	if (!ping->timeout)
-		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n", ping->bytes_sent, ping->addressN, ping->icmp_ind, ping->ttl, ping->time);
+		printf("%d bytes from %s (%s): icmp_seq=%d ttl=%d time=%.3f ms\n", ping->size, ping->hostname, ping->selfAddress, ping->icmp_ind, ping->ttl, ping->time);
 	else if (ping->timeout && !ping->verbose)
 		printf("Request timeout for icmp_seq %d\n", ping->icmp_ind);
 	else if (ping->timeout && ping->verbose)
@@ -60,25 +60,19 @@ void	printVerbosePing(t_answer *ping)
 	uint16_t cksum = ping->ip->ip_sum ? ntohs(ping->ip->ip_sum) : 0;
 	
 	ping->verboseError = true;
-	char *src = malloc(16);
-	if (!src)
-		return;
-	char *dst = malloc(16);
-	if (!dst)
-		return;
-    sprintf(src, "%02x%02x %02x%02x", ping->ip->ip_src.s_addr & 0xff, (ping->ip->ip_src.s_addr >> 8) & 0xff, (ping->ip->ip_src.s_addr >> 16) & 0xff,  (ping->ip->ip_src.s_addr >> 24) & 0xff);
-    sprintf(dst, "%02x%02x %02x%02x", ping->ip->ip_dst.s_addr & 0xff, (ping->ip->ip_dst.s_addr >> 8) & 0xff, (ping->ip->ip_dst.s_addr >> 16) & 0xff,  (ping->ip->ip_dst.s_addr >> 24) & 0xff);
+	char *dst = charIp_to_hex(ping->addressN);
+	char *src = charIp_to_hex(ping->selfAddress);
 
 	char *description = get_icmp_description(ping->icmp_type, ping->icmp_code);
-	printf("%d bytes from %s: %s\n", ping->bytes_sent, ping->addressN, description ? description : "Unknown ICMP description");
+	printf("%d bytes from %s (%s): %s\n", ping->size, ping->hostname, ping->selfAddress, description ? description : "Unknown ICMP description");
 	
 	printf("IP Hdr Dump :\n");
 	printf("%-1x%-1x %-2x 00%-2x %-4x %-1x%-1x%-2x%-2x%-2x %s %s\n", \
     ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, 64, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, src, dst);
 	
-	printf("Vr   HL   TOS  Len    ID     Flg   off   TTL    Pro    cks      Src	      Dst	Data\n");
+	printf("Vr   HL   TOS  Len    ID     Flg   off   TTL    Pro    cks         Src	        Dst	        Data\n");
 	printf("%-4u %-4u %-4u %-6u %-5u   %-4u %-5u %-4u    %-2u   %#6x  %-15s%-15s\n", \
-	ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, len, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, inet_ntoa(ping->ip->ip_src),ping->addressN);
+	ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, len, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, ping->selfAddress,ping->addressN);
 	
 	printf("ICMP : type %d, code %d, size %d, id 0x%-4x, seq 0x%-4x\n", ping->icmp_type, ping->icmp_code, PACKET_SIZE, ping->id, ping->icmp_ind);
 	free(src);
@@ -116,4 +110,26 @@ void	calculate_stddev(t_answer *ping)
 		var = 0;
 		ping->stddev = 0;
 	}
+}
+
+char *charIp_to_hex(char *addr)
+{
+    if (!addr)
+        return NULL;
+    char *returned = malloc(10);
+    if (!returned)
+        return NULL;
+        
+    unsigned int a, b, c, d;
+    if (sscanf(addr, "%u.%u.%u.%u", &a, &b, &c, &d) != 4) {
+        free(returned);
+        return NULL;
+    }
+    
+    if (a > 255 || b > 255 || c > 255 || d > 255) {
+        free(returned);
+        return NULL;
+    }
+    sprintf(returned, "%02x%02x %02x%02x", a, b, c, d);    
+    return returned;
 }

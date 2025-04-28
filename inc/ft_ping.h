@@ -7,15 +7,17 @@
 # include <stdlib.h>
 # include <stdbool.h>
 # include <netdb.h>
-# include <arpa/inet.h>
 # include <sys/time.h>
 # include <sys/ioctl.h>
 # include <sys/param.h>
 # include <net/if.h>
 # include <netinet/ip.h>
+# include <netinet/ip_icmp.h>
+# include <arpa/inet.h>
 # include <math.h>
 # include <unistd.h>
 # include <getopt.h>
+#include <ifaddrs.h>
 
 // Argument parser structure
 struct arguments {
@@ -79,11 +81,13 @@ typedef struct s_ping
 	int  ttl;
 	bool verbose;
 	bool isCount;
+	int  size;
 	char *address;
 	char *option;
 	char *option2;
 	bool gotAddress;
 	int  gotFlag;
+	int tos;
 	bool error;
 	double  interval;
 	unsigned int  count;
@@ -91,6 +95,7 @@ typedef struct s_ping
 
 typedef struct s_answer
 {
+	int  size;
 	bool timeout;
 	unsigned int icmp_ind;
 	int socketFd;
@@ -98,7 +103,8 @@ typedef struct s_answer
 	char *packet;
 	char *address;
 	char *addressN;
-	char *reversednsAddress;
+	char *selfAddress;
+	char *hostname;
 	struct icmp_header *icmp;
 	int received;
 	unsigned long packet_loss;
@@ -141,10 +147,10 @@ typedef struct icmp_codes_s {
 
 // PARSING
 t_ping *parseInputs(char **argv, int argc);
-bool	isTtl(char *str);
 bool	isAddress(char *str);
 bool	isInterval(char *str);
-bool	isCount(char *str);
+bool	isNumber(char *str);
+
 
 // TIME
 bool	get_time(t_answer *ping);
@@ -159,11 +165,12 @@ void	printVerbosePing(t_answer *ping);
 void	printHelpPing(void);
 char	*get_icmp_description(int type, int code);
 void	calculate_stddev(t_answer *ping);
+char 	*charIp_to_hex(char *addr);
 
 // INIT
 void    setSocket(t_answer *answer, t_ping *ping);
 void    getAddress(t_answer *answer, t_ping *ping);
-void    getDnsAddress(t_answer *answer, t_ping *ping);
+void    getSelfAddress(t_answer *answer, t_ping *ping);
 t_answer *initPing(t_ping *ping, t_answer *answer);
 void    initAnswer(t_answer *answer, t_ping *ping);
 

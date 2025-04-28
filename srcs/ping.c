@@ -1,5 +1,4 @@
 #include "ft_ping.h"
-
 unsigned short checksum(void *b, int len)
 {
     unsigned short *buf = b;
@@ -43,6 +42,8 @@ void    receivePing(t_answer *answer)
     if (answer->received == -1) {
         answer->timeout = true;
         answer->packet_loss++;
+        answer->ip = NULL;
+        answer->icmp = NULL;
 	} else {
         get_time(answer);
         set_round_trip(answer);
