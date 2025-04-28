@@ -29,7 +29,6 @@ void    initAnswer(t_answer *answer, t_ping *ping)
 	answer->id = getpid();
     setSocket(answer, ping);
     getAddress(answer, ping);
-    getDnsAddress(answer, ping);
 }
 
 void    setSocket(t_answer *answer, t_ping *ping)
@@ -37,7 +36,6 @@ void    setSocket(t_answer *answer, t_ping *ping)
     struct timeval error;
     error.tv_sec = 1;
     error.tv_usec = 0;
-	printf("ttl %d\n", answer->ttl);
    if (setsockopt(answer->socketFd, SOL_SOCKET, SO_RCVTIMEO, &error, sizeof(error)) < 0)
         freeDuringInit(answer, ping);
     if (setsockopt(answer->socketFd, IPPROTO_IP, IP_TTL, &answer->ttl, sizeof(answer->ttl)) < 0)
@@ -60,19 +58,5 @@ void    getAddress(t_answer *answer, t_ping *ping)
     }
     answer->addressN = strdup(inet_ntoa(answer->dest.sin_addr));
     if (!answer->addressN)
-        freeDuringInit(answer, ping);
-}
-
-void    getDnsAddress(t_answer *answer, t_ping *ping)
-{
-    answer->reversednsAddress = malloc(1024);
-    if (!answer->reversednsAddress)
-        freeDuringInit(answer, ping);
-    struct sockaddr_in revdns;
-    memset(&revdns, 0, sizeof(revdns));
-    revdns.sin_family = AF_INET;
-    revdns.sin_addr = answer->dest.sin_addr;
-    int err = getnameinfo((struct sockaddr *)&revdns, sizeof(revdns), answer->reversednsAddress, 1024, NULL, 0, NI_NAMEREQD);
-    if (err != 0)
         freeDuringInit(answer, ping);
 }

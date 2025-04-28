@@ -92,7 +92,18 @@ char *get_icmp_description(int type, int code) {
 
 void	calculate_stddev(t_answer *ping)
 {
-	double mean = ping->total_time / ping->packets_received;
-	double var = ping->total_time_squared / ping->packets_received - mean * mean;
-	ping->stddev = sqrt(var);
+	double mean = 1;
+	double var = 1;
+	if (ping->packets_received != 0)
+	{
+		mean = ping->total_time / ping->packets_received;
+		var = ping->total_time_squared / ping->packets_received - mean * mean;
+		ping->stddev = sqrt(var);
+	}
+	else
+	{
+		mean = 0;
+		var = 0;
+		ping->stddev = 0;
+	}
 }

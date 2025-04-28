@@ -169,8 +169,8 @@ void    initAnswer(t_answer *answer, t_ping *ping);
 
 // PING
 unsigned short checksum(void *b, int len);
-void	sendPing(t_ping *ping, t_answer *answer);
-void	receivePing(t_ping *ping, t_answer *answer);
+void    sendPing(t_answer *answer);
+void	receivePing(t_answer *answer);
 void    checkIcmpType(t_answer *answer);
 
 // SIGNALS

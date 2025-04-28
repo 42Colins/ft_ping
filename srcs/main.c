@@ -15,18 +15,24 @@ int main(int argc, char **argv)
 		return (1);
 	answer = initPing(data, answer);
     signal(SIGINT, handleSignal);
+	bool isCount = data->isCount;
+	unsigned int count = 0;
+	if (isCount)
+		count = data->count;
+	int interval = data->interval;
+	free(data);
     while (true)
     {
-        sendPing(data, answer);
-        receivePing(data, answer);
+        sendPing(answer);
+        receivePing(answer);
         printPing(answer);
-		if (data->isCount)
+		if (isCount)
 		{
-			if (answer->icmp_ind + 1 == data->count)
+			if (answer->icmp_ind + 1 == count)
 				exitOnCount(answer);
 		}
 		if (!answer->timeout || answer->verboseError)
-	        sleep(data->interval);
+	        sleep(interval);
         answer->icmp_ind++;
     }
 	return 0;

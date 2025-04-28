@@ -12,6 +12,8 @@
 
 #include "libft.h"
 
+#define SIZE_MAX 2147483647
+
 void	*ft_calloc(size_t count, size_t size)
 {
 	char	*calloc;

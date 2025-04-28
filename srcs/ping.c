@@ -16,9 +16,8 @@ unsigned short checksum(void *b, int len)
     return result;
 }
 
-void    sendPing(t_ping *ping, t_answer *answer)
+void    sendPing(t_answer *answer)
 {
-    (void) ping;
     struct icmp_header *icmp = (struct icmp_header *)answer->packet;
     
     icmp->type = ICMP_HEADER_SIZE;
@@ -35,9 +34,8 @@ void    sendPing(t_ping *ping, t_answer *answer)
     answer->packets_transmitted++;
 }
 
-void    receivePing(t_ping *ping, t_answer *answer)
+void    receivePing(t_answer *answer)
 {
-    (void) ping;
     struct sockaddr_in from;
 	socklen_t fromlen = sizeof(from);
     char recv_packet[PACKET_SIZE];

@@ -6,7 +6,7 @@ t_ping *parseInputs(char **argv, int argc)
     bool verbose = false;
     char *address = NULL;
     int i = 1;
-	int ttl = 1;
+	int ttl = 64;
 	int interval = 1;
 	int count = 0;
 
@@ -69,7 +69,7 @@ t_ping *parseInputs(char **argv, int argc)
     }
     parsee = malloc(sizeof(t_ping));
     if (!parsee)
-        return NULL;
+        {return NULL;}
 	parsee->isCount = false;
 	if (count > 0)
 	{

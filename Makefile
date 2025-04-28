@@ -38,7 +38,7 @@ $(DIR_OBJ)%.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -I$(DIR_INCLUDES) -I/usr/include -O3 -I./libft -c $< -o $@
 
 $(NAME): $(OBJS) $(LIB)
-	$(CC) $(OBJS) -g -L./libft -lft -o $(NAME)
+	$(CC) $(OBJS) -g -L./libft -lft -lm -o $(NAME)
 
 $(LIB):
 	$(MAKE) -C libft

@@ -21,7 +21,6 @@ bool	get_time(t_answer *ping)
 
 void    set_round_trip(t_answer *answer)
 {
-    answer->time_array = realloc(answer->time_array, answer->icmp_ind * sizeof(double));
     answer->total_time += answer->time;
 	answer->total_time_squared += answer->time * answer->time;
     if (answer->icmp_ind == 0)
@@ -32,14 +31,7 @@ void    set_round_trip(t_answer *answer)
     if (answer->time < answer->min_time)
         answer->min_time = answer->time;
     if (answer->time > answer->max_time)
-        answer->max_time = answer->time;
-	answer->time_array[answer->icmp_ind] = answer->time;
+		{answer->max_time = answer->time;}
 	answer->med_time = answer->total_time / answer->packets_received;
-	double mean = 0;
-	for (unsigned int i = 0; i < answer->icmp_ind; i++)
-	{
-		if (answer->time_array[i] != 0)
-			mean += fabs(answer->time_array[i] - answer->med_time);
-	}
-    answer->mdev = mean / answer->packets_received;
+
 }

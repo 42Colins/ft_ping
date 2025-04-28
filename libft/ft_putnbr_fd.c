@@ -19,21 +19,18 @@ void	ft_putnbr_fd(int n, int fd)
 	char	dash;
 
 	dash = '-';
-	if (n >= -2147483648 && n <= 2147483647)
+	if (n == -2147483648)
 	{
-		if (n == -2147483648)
-		{
-			write(fd, &dash, 1);
-			ft_putnbr_fd(214748364, fd);
-			write(fd, "8", 1);
-		}
-		else if (n < 0)
-		{
-			write(fd, &dash, 1);
-			ft_putnbr_fd(n * -1, fd);
-		}
-		ft_next_putnbr_fd(n, fd);
+		write(fd, &dash, 1);
+		ft_putnbr_fd(214748364, fd);
+		write(fd, "8", 1);
 	}
+	else if (n < 0)
+	{
+		write(fd, &dash, 1);
+		ft_putnbr_fd(n * -1, fd);
+	}
+	ft_next_putnbr_fd(n, fd);
 }
 
 void	ft_next_putnbr_fd(int n, int fd)
