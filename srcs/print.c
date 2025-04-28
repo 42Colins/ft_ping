@@ -48,28 +48,38 @@ void	printPing(t_answer *ping)
 
 void	printVerbosePing(t_answer *ping)
 {
+	if (!ping->ip || !ping->icmp)
+		return;
 	ping->icmp_type = ping->icmp->type;
 	ping->icmp_code = ping->icmp->code;
-	uint16_t off  = ntohs(ping->ip->ip_off);
+	uint16_t off  = ping->ip->ip_off ? ntohs(ping->ip->ip_off) : 0;
 	uint8_t  flags = off >> 13;         // top 3 bits
 	uint16_t frag  = off & 0x1FFF;      // low 13 bits
-	uint16_t len   = ntohs(ping->ip->ip_len);
-	uint16_t id    = ntohs(ping->ip->ip_id);
-	uint16_t cksum = ntohs(ping->ip->ip_sum);
+	uint16_t len   = ping->ip->ip_len ? ntohs(ping->ip->ip_len) : 0;
+	uint16_t id    = ping->ip->ip_id ? ntohs(ping->ip->ip_id) : 0;
+	uint16_t cksum = ping->ip->ip_sum ? ntohs(ping->ip->ip_sum) : 0;
 	
 	ping->verboseError = true;
 	char *src = malloc(16);
-    sprintf(src, "%02x%02x %02x%02x", ping->ip->ip_src.s_addr & 0xff, (ping->ip->ip_src.s_addr >> 8) & 0xff, (ping->ip->ip_src.s_addr >> 16) & 0xff,  (ping->ip->ip_src.s_addr >> 24) & 0xff);
+	if (!src)
+		return;
 	char *dst = malloc(16);
+	if (!dst)
+		return;
+    sprintf(src, "%02x%02x %02x%02x", ping->ip->ip_src.s_addr & 0xff, (ping->ip->ip_src.s_addr >> 8) & 0xff, (ping->ip->ip_src.s_addr >> 16) & 0xff,  (ping->ip->ip_src.s_addr >> 24) & 0xff);
     sprintf(dst, "%02x%02x %02x%02x", ping->ip->ip_dst.s_addr & 0xff, (ping->ip->ip_dst.s_addr >> 8) & 0xff, (ping->ip->ip_dst.s_addr >> 16) & 0xff,  (ping->ip->ip_dst.s_addr >> 24) & 0xff);
 
-	printf("%d bytes from %s: %s\n", ping->bytes_sent, ping->addressN, get_icmp_description(ping->icmp_type, ping->icmp_code));
+	char *description = get_icmp_description(ping->icmp_type, ping->icmp_code);
+	printf("%d bytes from %s: %s\n", ping->bytes_sent, ping->addressN, description ? description : "Unknown ICMP description");
+	
 	printf("IP Hdr Dump :\n");
 	printf("%-1x%-1x %-2x 00%-2x %-4x %-1x%-1x%-2x%-2x%-2x %s %s\n", \
     ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, 64, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, src, dst);
+	
 	printf("Vr   HL   TOS  Len    ID     Flg   off   TTL    Pro    cks      Src	      Dst	Data\n");
 	printf("%-4u %-4u %-4u %-6u %-5u   %-4u %-5u %-4u    %-2u   %#6x  %-15s%-15s\n", \
 	ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, len, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, inet_ntoa(ping->ip->ip_src),ping->addressN);
+	
 	printf("ICMP : type %d, code %d, size %d, id 0x%-4x, seq 0x%-4x\n", ping->icmp_type, ping->icmp_code, PACKET_SIZE, ping->id, ping->icmp_ind);
 	free(src);
 	free(dst);
