@@ -25,7 +25,8 @@ int main(int argc, char **argv)
     {
         sendPing(answer);
         receivePing(answer);
-        printPing(answer);
+		if (answer->sent)
+	        printPing(answer);
 		if (isCount)
 		{
 			if (answer->icmp_ind + 1 == count)

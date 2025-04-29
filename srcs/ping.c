@@ -27,9 +27,10 @@ void    sendPing(t_answer *answer)
     icmp->checksum = checksum(answer->packet, PACKET_SIZE);
     start_time(answer);
     int sent = sendto(answer->socketFd, answer->packet, PACKET_SIZE, 0, (struct sockaddr *)&answer->dest, sizeof(answer->dest));
-    if (sent < 0) {
-	    printf("Timeout\n");
-	}
+    if (sent < 0)
+        answer->sent = false;
+    else 
+        answer->sent = true;
     answer->packets_transmitted++;
 }
 

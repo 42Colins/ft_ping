@@ -1,9 +1,0 @@
-PING youtube.com (216.58.215.46): 56 data bytes
-64 bytes from 216.58.215.46: Time to live exceeded
-IP Hdr Dump :
-c0 57 0040 f92d 001 81a9c6 0000 0000 0000 0000
-Vr   HL   TOS  Len    ID     Flg   off   TTL    Pro    cks      Src	      Dst	Data
-12   0    87   56     63789   0    0     1       112   0xa9c6  0.0.0.0        216.58.215.46  
-ICMP : type 11, code 0, size 64, id 0x2491, seq 0x0   
---- youtube.com ping statistics ---
-1 packets transmitted, 0 packets received, 100% packet loss, time 0.916000

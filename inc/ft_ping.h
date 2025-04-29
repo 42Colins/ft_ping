@@ -96,6 +96,7 @@ typedef struct s_ping
 typedef struct s_answer
 {
 	int  size;
+	bool sent;
 	bool timeout;
 	unsigned int icmp_ind;
 	int socketFd;

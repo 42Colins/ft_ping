@@ -16,6 +16,10 @@ void	exitOnCount(t_answer *answer)
             free(answer->packet);
         if (answer->addressN)
             free(answer->addressN);
+        if (answer->hostname)
+            free(answer->hostname);
+        if (answer->selfAddress)
+            free(answer->selfAddress);
         free(answer);
     }
     exit(0);

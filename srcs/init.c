@@ -12,6 +12,8 @@ t_answer *initPing(t_ping *ping, t_answer *answer)
 
 void    initAnswer(t_answer *answer, t_ping *ping)
 {
+    answer->stddev = 0;
+    answer->sent = true;
     answer->size = ping->size;
 	answer->ttl = ping->ttl;
 	answer->verbose = ping->verbose;
@@ -27,6 +29,7 @@ void    initAnswer(t_answer *answer, t_ping *ping)
     answer->min_time = 0;
     answer->max_time = 0;
     answer->total_time = 0;
+    answer->total_time_squared = 0;
 	answer->id = getpid();
     setSocket(answer, ping);
     getAddress(answer, ping);
@@ -95,20 +98,24 @@ void    getSelfAddress(t_answer *answer, t_ping *ping)
     struct sockaddr_in sa;
     memset(&sa, 0, sizeof(sa));
     sa.sin_family = AF_INET;
+    bool found = false;
 
     if (getifaddrs(&interfaces) == -1)
         freeDuringInit(answer, ping);
     for (ifa = interfaces; ifa != NULL; ifa = ifa->ifa_next) {
         if (ifa->ifa_addr && ifa->ifa_addr->sa_family == AF_INET) {
+            if (found)
+                free(answer->hostname);
             void *tmpAddrPtr = &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
             inet_ntop(AF_INET, tmpAddrPtr, ip_address, sizeof(ip_address));
             sa.sin_addr = ((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
             if (getnameinfo((struct sockaddr*)&sa, sizeof(sa), host, sizeof(host), NULL, 0, 0) == 0) {
                 answer->hostname = strdup(host);
+                found = true;
             }
         }
     }
-       
+    
     answer->selfAddress = strdup(ip_address);
     freeifaddrs(interfaces);
 }
