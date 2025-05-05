@@ -2,7 +2,13 @@
 
 #define NITEMS(x) (sizeof(x) / sizeof(x[0]))
 
-icmp_codes_t icmp_code_description[] = {
+typedef struct icmp_code_description_s {
+    uint8_t type;
+    uint8_t code;
+    char *diag;
+} icmp_code_description_t;
+
+icmp_code_description_t icmp_code_description[] = {
         {ICMP_DEST_UNREACH, ICMP_NET_UNREACH, "Destination Net Unreachable"},
         {ICMP_DEST_UNREACH, ICMP_HOST_UNREACH, "Destination Host Unreachable"},
         {ICMP_DEST_UNREACH, ICMP_PROT_UNREACH, "Destination Protocol Unreachable"},
@@ -52,6 +58,8 @@ void	printVerbosePing(t_answer *ping)
 		printf("ft_ping: Destination unreachable\n");
 		return;
 	}
+	ping->icmp_type = 0;
+	ping->icmp_code = 0;
 	ping->icmp_type = ping->icmp->type;
 	ping->icmp_code = ping->icmp->code;
 	uint16_t off = 0;
@@ -76,20 +84,19 @@ void	printVerbosePing(t_answer *ping)
 	char *src = charIp_to_hex(ping->selfAddress);
 	
 	char *description = get_icmp_description(ping->icmp_type, ping->icmp_code);
-	printf("%d bytes from %s (%s): %s\n", ping->size, ping->hostname, ping->selfAddress, description ? description : "Unknown ICMP description");
+	printf("%d bytes from %s (%s): %s\n", ping->size, ping->hostname, ping->selfAddress, description ? description : "Destination host unreachable");
 	
 	printf("IP Hdr Dump :\n");
-	printf("%-1x%-1x %-2x 00%-2x %-4x %-1x%-1x%-2x%-2x%-2x %s %s\n", \
-    ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, 64, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, src, dst);
+	printf("%-1x%-1x %-2x 00%-2x %-4x %-1x%-1x%-2x%-2x%-2x %s %s\n", ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, 64, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, src, dst);
 	
 	printf("Vr   HL   TOS  Len    ID     Flg   off   TTL    Pro    cks         Src	        Dst	        Data\n");
-	printf("%-4u %-4u %-4u %-6u %-5u   %-4u %-5u %-4u    %-2u   %#6x  %-15s%-15s\n", \
-	ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, len, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, ping->selfAddress,ping->addressN);
+	printf("%-4u %-4u %-4u %-6u %-5u   %-4u %-5u %-4u    %-2u   %#6x  %-15s%-15s\n", ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, len, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, ping->selfAddress,ping->addressN);
 	
 	printf("ICMP : type %d, code %d, size %d, id 0x%-4x, seq 0x%-4x\n", ping->icmp_type, ping->icmp_code, PACKET_SIZE, ping->id, ping->icmp_ind);
 	free(src);
 	free(dst);
 }
+
 
 void	printHelpPing(void)
 {
@@ -97,12 +104,7 @@ void	printHelpPing(void)
 }
 
 char *get_icmp_description(int type, int code) {
-    if (type == ICMP_ECHO && code == 0)
-        return "Echo Request";
-    
-    if (type == ICMP_ECHOREPLY && code == 0)
-        return "Echo Reply";
-    icmp_codes_t *p;
+    icmp_code_description_t *p;
     for (p = icmp_code_description; p < icmp_code_description + NITEMS(icmp_code_description); p++) {
         if (p->type == type && p->code == code) {
             return p->diag;
@@ -115,7 +117,7 @@ void	calculate_stddev(t_answer *ping)
 {
 	double mean = 1;
 	double var = 1;
-	if (ping->packets_received != 0)
+	if (ping->packets_received > 0)
 	{
 		mean = ping->total_time / ping->packets_received;
 		var = ping->total_time_squared / ping->packets_received - mean * mean;

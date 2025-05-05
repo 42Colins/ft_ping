@@ -17,7 +17,7 @@
 # include <math.h>
 # include <unistd.h>
 # include <getopt.h>
-#include <ifaddrs.h>
+# include <ifaddrs.h>
 
 // Argument parser structure
 struct arguments {
@@ -114,7 +114,6 @@ typedef struct s_answer
 	int ttl;
 	long start_time;
 	double time;
-	double *time_array;
 	bool verbose;
 	bool verboseError;
 	struct sockaddr_in dest;
@@ -127,7 +126,6 @@ typedef struct s_answer
     double mdev;
 	double med_time;
 	double stddev;
-	char *ip_hdr;
 	struct ip *ip;
     uint16_t id;
 	int  icmp_type;

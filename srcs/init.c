@@ -17,7 +17,10 @@ void    initAnswer(t_answer *answer, t_ping *ping)
         answer->tos = ping->tos;
         answer->isTos = ping->isTos;
     }
+    else
+        answer->tos = 0;
     answer->stddev = 0;
+    answer->packet_loss = 0;
     answer->sent = true;
     answer->size = ping->size;
 	answer->ttl = ping->ttl;
@@ -36,6 +39,7 @@ void    initAnswer(t_answer *answer, t_ping *ping)
     answer->total_time = 0;
     answer->total_time_squared = 0;
 	answer->id = getpid();
+    answer->timeout = false;
     setSocket(answer, ping);
     getAddress(answer, ping);
     getSelfAddress(answer, ping);
@@ -43,12 +47,15 @@ void    initAnswer(t_answer *answer, t_ping *ping)
 
 void    setSocket(t_answer *answer, t_ping *ping)
 {
+    int broadcast = 1;
     struct timeval error;
     error.tv_sec = 1;
     error.tv_usec = 0;
     if (setsockopt(answer->socketFd, SOL_SOCKET, SO_RCVTIMEO, &error, sizeof(error)) < 0)
         freeDuringInit(answer, ping);
     if (setsockopt(answer->socketFd, IPPROTO_IP, IP_TTL, &answer->ttl, sizeof(answer->ttl)) < 0)
+        freeDuringInit(answer, ping);
+    if (setsockopt(answer->socketFd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0)
         freeDuringInit(answer, ping);
     if (ping->isTos)
     {
