@@ -42,9 +42,9 @@ void receivePing(t_answer *answer)
     struct sockaddr_in from;
     socklen_t fromlen = sizeof(from);
     memset(recv_packet, 0, PACKET_SIZE);
+    answer->unreachable = false;    
     answer->received = recvfrom(answer->socketFd, recv_packet, PACKET_SIZE, 0, (struct sockaddr *)&from, &fromlen);
     if (answer->received == -1) {
-        printf("ft_ping: recvfrom error\n");
         answer->timeout = true;
         answer->packet_loss++;
         memset(&null_ip, 0, sizeof(null_ip));
@@ -79,6 +79,7 @@ void checkIcmpType(t_answer *answer)
         return;
     }
     if (answer->icmp->type == ICMP_DEST_UNREACH) {
+        answer->unreachable = true;
         answer->timeout = true;
         answer->packet_loss++;
         return;

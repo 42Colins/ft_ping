@@ -19,6 +19,7 @@ void    initAnswer(t_answer *answer, t_ping *ping)
     }
     else
         answer->tos = 0;
+    answer->unreachable = false;    
     answer->stddev = 0;
     answer->packet_loss = 0;
     answer->sent = true;

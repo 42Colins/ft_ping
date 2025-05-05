@@ -95,6 +95,7 @@ typedef struct s_ping
 
 typedef struct s_answer
 {
+	bool unreachable;
 	int  tos;
 	bool isTos;
 	int  size;

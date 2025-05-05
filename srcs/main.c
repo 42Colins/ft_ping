@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 			if (answer->icmp_ind + 1 == count)
 				exitOnCount(answer);
 		}
-		if (!answer->timeout || answer->verboseError)
+		if (!answer->timeout || answer->verboseError || answer->unreachable)
 	        sleep(interval);
         answer->icmp_ind++;
     }
