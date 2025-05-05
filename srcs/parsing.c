@@ -175,3 +175,10 @@ bool isNumber(char *str)
 	else
 		return false;
 }
+
+bool isRoot(void)
+{
+    if (geteuid() == 0)
+		return true;
+	return false;
+}

@@ -49,12 +49,15 @@ void	printPing(t_answer *ping)
 void	printVerbosePing(t_answer *ping)
 {
 	if (!ping->ip || !ping->icmp)
+	{
+		printf("ft_ping: Destination unreachable\n");
 		return;
+	}
 	ping->icmp_type = ping->icmp->type;
 	ping->icmp_code = ping->icmp->code;
 	uint16_t off  = ping->ip->ip_off ? ntohs(ping->ip->ip_off) : 0;
-	uint8_t  flags = off >> 13;         // top 3 bits
-	uint16_t frag  = off & 0x1FFF;      // low 13 bits
+	uint8_t  flags = off >> 13;
+	uint16_t frag  = off & 0x1FFF;
 	uint16_t len   = ping->ip->ip_len ? ntohs(ping->ip->ip_len) : 0;
 	uint16_t id    = ping->ip->ip_id ? ntohs(ping->ip->ip_id) : 0;
 	uint16_t cksum = ping->ip->ip_sum ? ntohs(ping->ip->ip_sum) : 0;
@@ -81,7 +84,7 @@ void	printVerbosePing(t_answer *ping)
 
 void	printHelpPing(void)
 {
-	printf("usage: ping [options] destination\nSend ICMP ECHO_REQUEST packets to network hosts.\n\n Options valid for all request types:\n\n-v                     verbose output\n--ttl=N                specify N as time-to-live\n--interval=NUMBER      wait NUMBER seconds between sending each packet\n--count=n              stop after sending count ECHO_REQUEST packets\n");
+	printf("usage: ping [options] destination\nSend ICMP ECHO_REQUEST packets to network hosts.\n\n Options valid for all request types:\n\n-v                     verbose output\n--ttl=N                specify N as time-to-live\n--interval=NUMBER      wait NUMBER seconds between sending each packet\n--count=n              stop after sending count ECHO_REQUEST packets\n--tos=NUM              set type of service (TOS) to NUM\n-?                     give this help list\n");
 }
 
 char *get_icmp_description(int type, int code) {

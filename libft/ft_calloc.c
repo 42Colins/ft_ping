@@ -6,13 +6,13 @@
 /*   By: cprojean <cprojean@42lyon.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/13 12:53:52 by cprojean          #+#    #+#             */
-/*   Updated: 2022/11/24 15:16:59 by cprojean         ###   ########.fr       */
+/*   Updated: 2025/04/30 21:06:43 by cprojean         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-#define SIZE_MAX 2147483647
+// #define SIZE_MAX 2147483647
 
 void	*ft_calloc(size_t count, size_t size)
 {

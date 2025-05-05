@@ -151,6 +151,7 @@ t_ping *parseInputs(char **argv, int argc);
 bool	isAddress(char *str);
 bool	isInterval(char *str);
 bool	isNumber(char *str);
+bool isRoot(void);
 
 
 // TIME
