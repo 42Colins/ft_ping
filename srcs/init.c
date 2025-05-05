@@ -12,6 +12,11 @@ t_answer *initPing(t_ping *ping, t_answer *answer)
 
 void    initAnswer(t_answer *answer, t_ping *ping)
 {
+    if (ping->isTos)
+    {
+        answer->tos = ping->tos;
+        answer->isTos = ping->isTos;
+    }
     answer->stddev = 0;
     answer->sent = true;
     answer->size = ping->size;
@@ -45,7 +50,7 @@ void    setSocket(t_answer *answer, t_ping *ping)
         freeDuringInit(answer, ping);
     if (setsockopt(answer->socketFd, IPPROTO_IP, IP_TTL, &answer->ttl, sizeof(answer->ttl)) < 0)
         freeDuringInit(answer, ping);
-    if (ping->tos > 0)
+    if (ping->isTos)
     {
         if (setsockopt(answer->socketFd, IPPROTO_IP, IP_TOS, &ping->tos, sizeof(ping->tos)) < 0)
             freeDuringInit(answer, ping);

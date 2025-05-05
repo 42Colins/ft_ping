@@ -21,7 +21,6 @@ icmp_codes_t icmp_code_description[] = {
         {ICMP_TIME_EXCEEDED, ICMP_EXC_TTL, "Time to live exceeded"},
         {ICMP_TIME_EXCEEDED, ICMP_EXC_FRAGTIME, "Frag reassembly time exceeded"}};
 
-
 void	initPrint(t_answer *ping)
 {
 	printf("PING %s (%s): %d data bytes\n", ping->address, ping->addressN, ping->size - 8);
@@ -55,17 +54,27 @@ void	printVerbosePing(t_answer *ping)
 	}
 	ping->icmp_type = ping->icmp->type;
 	ping->icmp_code = ping->icmp->code;
-	uint16_t off  = ping->ip->ip_off ? ntohs(ping->ip->ip_off) : 0;
-	uint8_t  flags = off >> 13;
-	uint16_t frag  = off & 0x1FFF;
-	uint16_t len   = ping->ip->ip_len ? ntohs(ping->ip->ip_len) : 0;
-	uint16_t id    = ping->ip->ip_id ? ntohs(ping->ip->ip_id) : 0;
-	uint16_t cksum = ping->ip->ip_sum ? ntohs(ping->ip->ip_sum) : 0;
+	uint16_t off = 0;
+    uint8_t flags = 0;
+    uint16_t frag = 0;
+    uint16_t len = 0;
+    uint16_t id = 0;
+    uint16_t cksum = 0;
+	
+	if (ping->ip)
+	{	
+		off  = ping->ip->ip_off ? ntohs(ping->ip->ip_off) : 0;
+		flags = off >> 13;         // top 3 bits
+		frag  = off & 0x1FFF;      // low 13 bits
+		len   = ping->ip->ip_len ? ntohs(ping->ip->ip_len) : 0;
+		id    = ping->ip->ip_id ? ntohs(ping->ip->ip_id) : 0;
+		cksum = ping->ip->ip_sum ? ntohs(ping->ip->ip_sum) : 0;
+	}
 	
 	ping->verboseError = true;
 	char *dst = charIp_to_hex(ping->addressN);
 	char *src = charIp_to_hex(ping->selfAddress);
-
+	
 	char *description = get_icmp_description(ping->icmp_type, ping->icmp_code);
 	printf("%d bytes from %s (%s): %s\n", ping->size, ping->hostname, ping->selfAddress, description ? description : "Unknown ICMP description");
 	
@@ -88,6 +97,11 @@ void	printHelpPing(void)
 }
 
 char *get_icmp_description(int type, int code) {
+    if (type == ICMP_ECHO && code == 0)
+        return "Echo Request";
+    
+    if (type == ICMP_ECHOREPLY && code == 0)
+        return "Echo Reply";
     icmp_codes_t *p;
     for (p = icmp_code_description; p < icmp_code_description + NITEMS(icmp_code_description); p++) {
         if (p->type == type && p->code == code) {
@@ -121,8 +135,9 @@ char *charIp_to_hex(char *addr)
         return NULL;
     char *returned = malloc(10);
     if (!returned)
-        return NULL;
-        
+	    return NULL;
+
+	memset(returned, 0, 10);
     unsigned int a, b, c, d;
     if (sscanf(addr, "%u.%u.%u.%u", &a, &b, &c, &d) != 4) {
         free(returned);
@@ -133,6 +148,6 @@ char *charIp_to_hex(char *addr)
         free(returned);
         return NULL;
     }
-    sprintf(returned, "%02x%02x %02x%02x", a, b, c, d);    
+    sprintf(returned, "%02x%02x %02x%02x", a, b, c, d);
     return returned;
 }

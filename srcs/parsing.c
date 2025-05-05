@@ -11,6 +11,7 @@ t_ping *parseInputs(char **argv, int argc)
 	int count = 0;
 	int tos = 0;
 	unsigned int size;
+	bool isTos = false;
 	bool isSize = false;
     while (i < argc) {
         if (argv[i][0] == '-') {
@@ -59,6 +60,7 @@ t_ping *parseInputs(char **argv, int argc)
 			{
 				if (strlen(argv[i]) > 6 && isNumber(&argv[i][6]))
 				{
+					isTos = true;
 					tos = atoi(&argv[i][6]);
 					if (tos < 0 || tos > 255)
 						printf("ft_ping: option value too big: %s\n", &argv[i][6]);
@@ -105,7 +107,8 @@ t_ping *parseInputs(char **argv, int argc)
 		parsee->isCount = true;
 		parsee->count = count;
 	}
-	if (tos > 0)
+	parsee->isTos = isTos;
+	if (isTos)
 		parsee->tos = tos;
     parsee->verbose = verbose;
     parsee->address = address;
