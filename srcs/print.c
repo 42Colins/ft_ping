@@ -39,7 +39,7 @@ void	endPrint(t_answer *ping)
 void	printPing(t_answer *ping)
 {
 	if (!ping->timeout)
-		printf("%d bytes from %s (%s): icmp_seq=%d ttl=%d time=%.3f ms\n", ping->size, ping->hostname, ping->selfAddress, ping->icmp_ind, ping->ttl, ping->time);
+		printf("%d bytes from %s (%s): icmp_seq=%d ttl=%d time=%.3f ms\n", ping->size, ping->address, ping->addressN, ping->icmp_ind, ping->ttl, ping->time);
 	else if (ping->timeout && !ping->verbose)
 		printf("Request timeout for icmp_seq %d\n", ping->icmp_ind);
 	else if (ping->timeout && ping->verbose)
