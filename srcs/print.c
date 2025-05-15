@@ -64,7 +64,7 @@ void	printVerbosePing(t_answer *ping)
 	char *src = charIp_to_hex(ping->selfAddress);
 
 	char *description = get_icmp_description(ping->icmp_type, ping->icmp_code);
-	printf("%d bytes from %s (%s): %s\n", ping->size, ping->hostname, ping->selfAddress, description ? description : "Unknown ICMP description");
+	printf("%d bytes from %s (%s): %s\n", ping->size, ping->address, ping->addressN, description ? description : "Unknown ICMP description");
 	
 	printf("IP Hdr Dump :\n");
 	printf("%-1x%-1x %-2x 00%-2x %-4x %-1x%-1x%-2x%-2x%-2x %s %s\n", \

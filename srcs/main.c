@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 			if (answer->icmp_ind + 1 == count)
 				exitOnCount(answer);
 		}
-		if (!answer->timeout || answer->verboseError)
+		if (!answer->timeout || answer->verboseError || answer->timeout)
 	        sleep(interval);
         answer->icmp_ind++;
     }
