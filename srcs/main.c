@@ -13,6 +13,12 @@ int main(int argc, char **argv)
 	data = parseInputs(argv, argc);
 	if (!data)
 		return (1);
+	if (!isRoot())
+	{
+		free(data);
+		printf("ft_ping: you must be root to run this program\n");
+		exit(1);
+	}
 	answer = initPing(data, answer);
     signal(SIGINT, handleSignal);
 	bool isCount = data->isCount;
@@ -32,7 +38,7 @@ int main(int argc, char **argv)
 			if (answer->icmp_ind + 1 == count)
 				exitOnCount(answer);
 		}
-		if (!answer->timeout || answer->verboseError || answer->timeout)
+		if (!answer->timeout || answer->verboseError || answer->unreachable)
 	        sleep(interval);
         answer->icmp_ind++;
     }

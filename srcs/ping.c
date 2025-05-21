@@ -19,7 +19,7 @@ void    sendPing(t_answer *answer)
 {
     struct icmp_header *icmp = (struct icmp_header *)answer->packet;
     
-    icmp->type = ICMP_HEADER_SIZE;
+    icmp->type = ICMP_ECHO;
     icmp->code = 0;
     icmp->checksum = 0;
     icmp->identifier = getpid() & 0xFFFF;
@@ -34,18 +34,26 @@ void    sendPing(t_answer *answer)
     answer->packets_transmitted++;
 }
 
-void    receivePing(t_answer *answer)
+void receivePing(t_answer *answer)
 {
+    static char recv_packet[PACKET_SIZE];
+    static struct ip null_ip;
+    static struct icmp_header null_icmp;
     struct sockaddr_in from;
-	socklen_t fromlen = sizeof(from);
-    char recv_packet[PACKET_SIZE];
+    socklen_t fromlen = sizeof(from);
+    memset(recv_packet, 0, PACKET_SIZE);
+    answer->unreachable = false;    
     answer->received = recvfrom(answer->socketFd, recv_packet, PACKET_SIZE, 0, (struct sockaddr *)&from, &fromlen);
     if (answer->received == -1) {
         answer->timeout = true;
         answer->packet_loss++;
-        answer->ip = NULL;
-        answer->icmp = NULL;
-	} else {
+        memset(&null_ip, 0, sizeof(null_ip));
+        memset(&null_icmp, 0, sizeof(null_icmp));
+        answer->ip = &null_ip;
+        answer->icmp = &null_icmp;
+        get_time(answer);
+        set_round_trip(answer);
+    } else {
         get_time(answer);
         set_round_trip(answer);
         answer->timeout = false;
@@ -53,15 +61,29 @@ void    receivePing(t_answer *answer)
         int ip_header_len = answer->ip->ip_hl * 4;
         answer->icmp = (struct icmp_header *)(recv_packet + ip_header_len);
         checkIcmpType(answer);
-	}
+    }
 }
 
-void    checkIcmpType(t_answer *answer)
+void checkIcmpType(t_answer *answer)
 {
-    if (answer->icmp->type == 11) {
-        answer->packet_loss++;
-        answer->timeout = true;
-    }
-    else
+    if (!answer->icmp)
+        return;
+    
+    if (answer->icmp->type == ICMP_ECHOREPLY) {
         answer->packets_received++;
+        return;
+    }
+    if (answer->icmp->type == ICMP_TIME_EXCEEDED) {
+        answer->timeout = true;
+        answer->packet_loss++;
+        return;
+    }
+    if (answer->icmp->type == ICMP_DEST_UNREACH) {
+        answer->unreachable = true;
+        answer->timeout = true;
+        answer->packet_loss++;
+        return;
+    }
+    answer->timeout = true;
+    answer->packet_loss++;
 }
