@@ -110,10 +110,12 @@ typedef struct s_answer
 	char *addressN;
 	char *selfAddress;
 	char *hostname;
+	char *sender_address;
 	struct icmp_header *icmp;
 	int received;
 	unsigned long packet_loss;
 	int ttl;
+	int received_ttl;
 	long start_time;
 	double time;
 	bool verbose;

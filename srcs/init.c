@@ -58,12 +58,10 @@ void    setSocket(t_answer *answer, t_ping *ping)
         freeDuringInit(answer, ping);
     if (setsockopt(answer->socketFd, IPPROTO_IP, IP_TTL, &answer->ttl, sizeof(answer->ttl)) < 0)
         freeDuringInit(answer, ping);
-    if (setsockopt(answer->socketFd, IPPROTO_IP, IP_RECVERR, &on, sizeof(on)) < 0)
-        freeDuringInit(answer, ping);
+    // if (setsockopt(answer->socketFd, IPPROTO_IP, IP_RECVERR, &on, sizeof(on)) < 0)
+    //     freeDuringInit(answer, ping);
     if (setsockopt(answer->socketFd, IPPROTO_IP, IP_RECVTTL, &on, sizeof(on)) < 0)
         freeDuringInit(answer, ping);
-    // if (setsockopt(answer->socketFd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0)
-    //     freeDuringInit(answer, ping);
     if (ping->isTos)
     {
         if (setsockopt(answer->socketFd, IPPROTO_IP, IP_TOS, &ping->tos, sizeof(ping->tos)) < 0)

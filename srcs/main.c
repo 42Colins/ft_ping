@@ -58,7 +58,6 @@ int main(int argc, char **argv)
 			alarm_flag = 0;
 			alarm(interval);
 			sendPing(answer);
-			printf("ind : %d\n", answer->icmp_ind);
 			if (isCount && answer->icmp_ind >= count)
 				exitOnCount(answer);
 
