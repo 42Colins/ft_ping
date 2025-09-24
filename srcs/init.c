@@ -19,6 +19,7 @@ void    initAnswer(t_answer *answer, t_ping *ping)
     }
     else
         answer->tos = 0;
+    answer->ttlExceeded = false;
     answer->unreachable = false;    
     answer->stddev = 0;
     answer->packet_loss = 0;
@@ -48,7 +49,8 @@ void    initAnswer(t_answer *answer, t_ping *ping)
 
 void    setSocket(t_answer *answer, t_ping *ping)
 {
-    int broadcast = 1;
+    // int broadcast = 1;
+    int on = 1;
     struct timeval error;
     error.tv_sec = 1;
     error.tv_usec = 0;
@@ -56,8 +58,12 @@ void    setSocket(t_answer *answer, t_ping *ping)
         freeDuringInit(answer, ping);
     if (setsockopt(answer->socketFd, IPPROTO_IP, IP_TTL, &answer->ttl, sizeof(answer->ttl)) < 0)
         freeDuringInit(answer, ping);
-    if (setsockopt(answer->socketFd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0)
+    if (setsockopt(answer->socketFd, IPPROTO_IP, IP_RECVERR, &on, sizeof(on)) < 0)
         freeDuringInit(answer, ping);
+    if (setsockopt(answer->socketFd, IPPROTO_IP, IP_RECVTTL, &on, sizeof(on)) < 0)
+        freeDuringInit(answer, ping);
+    // if (setsockopt(answer->socketFd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0)
+    //     freeDuringInit(answer, ping);
     if (ping->isTos)
     {
         if (setsockopt(answer->socketFd, IPPROTO_IP, IP_TOS, &ping->tos, sizeof(ping->tos)) < 0)

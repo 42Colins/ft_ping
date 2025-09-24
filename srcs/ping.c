@@ -39,11 +39,8 @@ void receivePing(t_answer *answer)
     static char recv_packet[PACKET_SIZE];
     static struct ip null_ip;
     static struct icmp_header null_icmp;
-    struct sockaddr_in from;
-    socklen_t fromlen = sizeof(from);
     memset(recv_packet, 0, PACKET_SIZE);
-    answer->unreachable = false;    
-    answer->received = recvfrom(answer->socketFd, recv_packet, PACKET_SIZE, 0, (struct sockaddr *)&from, &fromlen);
+
     if (answer->received == -1) {
         answer->timeout = true;
         answer->packet_loss++;
@@ -52,9 +49,11 @@ void receivePing(t_answer *answer)
         answer->ip = &null_ip;
         answer->icmp = &null_icmp;
         get_time(answer);
+        printf("Time after get_time: %f ms\n", answer->time);
         set_round_trip(answer);
     } else {
         get_time(answer);
+        printf("Time after get_time: %f ms\n", answer->time);
         set_round_trip(answer);
         answer->timeout = false;
         answer->ip = (struct ip *)recv_packet;
@@ -74,8 +73,10 @@ void checkIcmpType(t_answer *answer)
         return;
     }
     if (answer->icmp->type == ICMP_TIME_EXCEEDED) {
-        answer->timeout = true;
-        answer->packet_loss++;
+        answer->timeout = false;
+        // answer->timeout = true;
+        answer->packets_received++;
+        answer->ttlExceeded = true;
         return;
     }
     if (answer->icmp->type == ICMP_DEST_UNREACH) {

@@ -18,6 +18,7 @@
 # include <unistd.h>
 # include <getopt.h>
 # include <ifaddrs.h>
+# include <errno.h>
 
 // Argument parser structure
 struct arguments {
@@ -131,6 +132,7 @@ typedef struct s_answer
     uint16_t id;
 	int  icmp_type;
 	int  icmp_code;
+	bool ttlExceeded;
 }	t_answer;
 
 struct icmp_header {
