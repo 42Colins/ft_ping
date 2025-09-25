@@ -69,7 +69,6 @@ void receivePing(t_answer *answer)
             free(answer->sender_address);
         answer->sender_address = strdup(inet_ntoa(from.sin_addr));
         answer->icmp = (struct icmp_header *)(recv_packet + ip_header_len);
-        
         checkIcmpType(answer);
     }
 }

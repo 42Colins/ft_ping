@@ -34,9 +34,11 @@ void	initPrint(t_answer *ping)
 
 void	endPrint(t_answer *ping)
 {
-	calculate_stddev(ping);
 	printf("--- %s ping statistics ---\n", ping->address);
 	printf("%d packets transmitted, %d packets received, %u%% packet loss, time %f\n", ping->packets_transmitted, ping->packets_received, (ping->packets_transmitted - ping->packets_received) * 100 / ping->packets_transmitted, ping->total_time);
+	if (ping->timeout && ping->verbose)
+		return;
+	calculate_stddev(ping);
 	if (((ping->packets_transmitted - ping->packets_received) * 100 / ping->packets_transmitted) != 100)
 		printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n", ping->min_time, ping->total_time / ping->packets_received, ping->max_time, ping->stddev);
 }
@@ -95,6 +97,7 @@ void	printVerbosePing(t_answer *ping)
 	printf("%-4u %-4u %-4u %-6u %-5u   %-4u %-5u %-4u    %-2u   %#6x  %-15s%-15s\n", ping->ip->ip_v, ping->ip->ip_hl, ping->ip->ip_tos, len, id, flags, frag, ping->ttl, ping->ip->ip_p, cksum, ping->selfAddress,ping->addressN);
 	
 	printf("ICMP : type %d, code %d, size %d, id 0x%-4x, seq 0x%-4x\n", ping->icmp_type, ping->icmp_code, PACKET_SIZE, ping->id, ping->icmp_ind);
+	printf("\n");
 	free(src);
 	free(dst);
 }

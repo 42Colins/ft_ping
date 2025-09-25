@@ -33,8 +33,8 @@ int main(int argc, char **argv)
     
     timer.it_interval.tv_sec = timer.it_value.tv_sec;
     timer.it_interval.tv_usec = timer.it_value.tv_usec;
+	fd_set read_fds;
     
-    // Start the timer
 	answer = initPing(data, answer);
 	signal(SIGINT, handleSignal);
     signal(SIGALRM, handleAlarm);
@@ -49,7 +49,6 @@ int main(int argc, char **argv)
     {
 		if (isCount && answer->icmp_ind >= count)
 			exitOnCount(answer);
-		fd_set read_fds;
 		FD_ZERO(&read_fds);
 		FD_SET(answer->socketFd, &read_fds);
         
@@ -59,18 +58,18 @@ int main(int argc, char **argv)
 		
 		int ready = select(answer->socketFd + 1, &read_fds, NULL, NULL, &timeout);
 		if (ready > 0)
-		{	
+		{
 			receivePing(answer);
 			if (answer->sent)
 				printPing(answer);
-			answer->icmp_ind++;
 		}
 		
 		if (alarm_flag) {
 			alarm_flag = 0;
+			printf("index = %d, count = %d\n", answer->icmp_ind, count);
 			setitimer(ITIMER_REAL, &timer, NULL);
 			sendPing(answer);
-
+			answer->icmp_ind++;
 		}
     }
 	return 0;
