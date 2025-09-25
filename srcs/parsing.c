@@ -7,7 +7,7 @@ t_ping *parseInputs(char **argv, int argc)
     char *address = NULL;
     int i = 1;
 	int ttl = 64;
-	int interval = 1;
+	double interval = 1;
 	int count = 0;
 	int tos = 0;
 	unsigned int size;
@@ -81,9 +81,15 @@ t_ping *parseInputs(char **argv, int argc)
 					printf("ft_ping: invalid value %s\n", &argv[i][7]);
 			}
 			else if (strcmp(argv[i], "--help") == 0)
+			{
 				printHelpPing();
+				return NULL;
+			}	
 			else
+			{
 				printf("ping: unrecognized option %s\n", argv[i]);
+				return NULL;
+			}
         }
         else if (!address) {
             address = argv[i];

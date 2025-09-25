@@ -1,6 +1,7 @@
 #include "ft_ping.h"
 
 extern t_answer *answer;
+double interval = 0;
 volatile sig_atomic_t alarm_flag = 0;
 
 void handleAlarm(int signal) {
@@ -15,16 +16,25 @@ int main(int argc, char **argv)
 		printf("Invalid input to call the ping function\n");
 		exit(1);	
 	}
-	t_ping *data;
-	data = parseInputs(argv, argc);
-	if (!data)
-		return (1);
+
 	if (!isRoot())
 	{
-		free(data);
 		printf("ft_ping: you must be root to run this program\n");
 		exit(1);
 	}
+	t_ping *data;
+	data = parseInputs(argv, argc);
+	if (!data)
+		exit (1);
+	interval = data->interval;
+    struct itimerval timer;
+    timer.it_value.tv_sec = (int)interval;
+    timer.it_value.tv_usec = (interval - (int)interval) * 1000000;
+    
+    timer.it_interval.tv_sec = timer.it_value.tv_sec;
+    timer.it_interval.tv_usec = timer.it_value.tv_usec;
+    
+    // Start the timer
 	answer = initPing(data, answer);
 	signal(SIGINT, handleSignal);
     signal(SIGALRM, handleAlarm);
@@ -32,12 +42,13 @@ int main(int argc, char **argv)
 	unsigned int count = 0;
 	if (isCount)
 		count = data->count;
-	int interval = data->interval;
 	free(data);
-	alarm(interval);
+    setitimer(ITIMER_REAL, &timer, NULL);
 	
     while (true)
     {
+		if (isCount && answer->icmp_ind >= count)
+			exitOnCount(answer);
 		fd_set read_fds;
 		FD_ZERO(&read_fds);
 		FD_SET(answer->socketFd, &read_fds);
@@ -52,18 +63,15 @@ int main(int argc, char **argv)
 			receivePing(answer);
 			if (answer->sent)
 				printPing(answer);
+			answer->icmp_ind++;
 		}
 		
 		if (alarm_flag) {
 			alarm_flag = 0;
-			alarm(interval);
+			setitimer(ITIMER_REAL, &timer, NULL);
 			sendPing(answer);
-			if (isCount && answer->icmp_ind >= count)
-				exitOnCount(answer);
 
-			answer->icmp_ind++;
 		}
-
     }
 	return 0;
 }

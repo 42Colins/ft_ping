@@ -64,7 +64,6 @@ void receivePing(t_answer *answer)
         answer->timeout = false;
         answer->ip = (struct ip *)recv_packet;
         int ip_header_len = answer->ip->ip_hl * 4;
-        printf("TTL from packet received: %d\n", answer->ip->ip_ttl);
         answer->received_ttl = answer->ip->ip_ttl;
         if (answer->sender_address) 
             free(answer->sender_address);
