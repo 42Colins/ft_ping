@@ -42,6 +42,8 @@ void    initAnswer(t_answer *answer, t_ping *ping)
     answer->total_time_squared = 0;
 	answer->id = getpid();
     answer->timeout = false;
+    answer->count = ping->count;
+    answer->isCount = ping->isCount;
     setSocket(answer, ping);
     getAddress(answer, ping);
     getSelfAddress(answer, ping);
@@ -58,8 +60,8 @@ void    setSocket(t_answer *answer, t_ping *ping)
         freeDuringInit(answer, ping);
     if (setsockopt(answer->socketFd, IPPROTO_IP, IP_TTL, &answer->ttl, sizeof(answer->ttl)) < 0)
         freeDuringInit(answer, ping);
-    if (setsockopt(answer->socketFd, IPPROTO_IP, IP_RECVERR, &on, sizeof(on)) < 0)
-        freeDuringInit(answer, ping);
+    // if (setsockopt(answer->socketFd, IPPROTO_IP, IP_RECVERR, &on, sizeof(on)) < 0)
+    //     freeDuringInit(answer, ping);
     if (setsockopt(answer->socketFd, IPPROTO_IP, IP_RECVTTL, &on, sizeof(on)) < 0)
         freeDuringInit(answer, ping);
     if (ping->isTos)

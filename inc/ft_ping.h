@@ -96,6 +96,9 @@ typedef struct s_ping
 
 typedef struct s_answer
 {
+	unsigned int count;
+	bool isCount;
+	unsigned int done;
 	bool unreachable;
 	int  tos;
 	bool isTos;
@@ -116,7 +119,7 @@ typedef struct s_answer
 	unsigned long packet_loss;
 	int ttl;
 	int received_ttl;
-	long start_time;
+	double start_time;
 	double time;
 	bool verbose;
 	bool verboseError;

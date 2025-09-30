@@ -35,7 +35,7 @@ void	initPrint(t_answer *ping)
 void	endPrint(t_answer *ping)
 {
 	printf("--- %s ping statistics ---\n", ping->address);
-	printf("%d packets transmitted, %d packets received, %u%% packet loss, time %f\n", ping->packets_transmitted, ping->packets_received, (ping->packets_transmitted - ping->packets_received) * 100 / ping->packets_transmitted, ping->total_time);
+	printf("%d packets transmitted, %d packets received, %u%% packet loss\n", ping->packets_transmitted, ping->packets_received, (ping->packets_transmitted - ping->packets_received) * 100 / ping->packets_transmitted);
 	if (ping->timeout && ping->verbose)
 		return;
 	calculate_stddev(ping);

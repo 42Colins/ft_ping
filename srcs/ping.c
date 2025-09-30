@@ -17,6 +17,8 @@ unsigned short checksum(void *b, int len)
 
 void    sendPing(t_answer *answer)
 {
+    if (answer->isCount && answer->packets_transmitted == answer->count)
+        return;
     struct icmp_header *icmp = (struct icmp_header *)answer->packet;
     
     icmp->type = ICMP_ECHO;
@@ -79,13 +81,12 @@ void checkIcmpType(t_answer *answer)
         return;
     
     if (answer->icmp->type == ICMP_ECHOREPLY) {
-        answer->packets_received++;
+        // answer->packets_received++;
         return;
     }
     if (answer->icmp->type == ICMP_TIME_EXCEEDED) {
-        // answer->timeout = false;
         answer->timeout = true;
-        answer->packets_received++;
+        // answer->packets_received++;
         answer->ttlExceeded = true;
         return;
     }
