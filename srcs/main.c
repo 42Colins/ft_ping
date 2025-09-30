@@ -70,7 +70,6 @@ int main(int argc, char **argv)
 			if (answer->sent)
 				printPing(answer);
 		}
-
     }
 	return 0;
 }

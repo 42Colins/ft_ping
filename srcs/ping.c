@@ -72,6 +72,8 @@ void receivePing(t_answer *answer)
         answer->sender_address = strdup(inet_ntoa(from.sin_addr));
         answer->icmp = (struct icmp_header *)(recv_packet + ip_header_len);
         checkIcmpType(answer);
+        if (answer->icmp->type != ICMP_TIME_EXCEEDED)
+            answer->packets_received++;
     }
 }
 
@@ -79,18 +81,15 @@ void checkIcmpType(t_answer *answer)
 {
     if (!answer->icmp)
         return;
-    
-    if (answer->icmp->type == ICMP_ECHOREPLY) {
-        // answer->packets_received++;
+    else if (answer->icmp->type == ICMP_ECHOREPLY) {
         return;
     }
-    if (answer->icmp->type == ICMP_TIME_EXCEEDED) {
+    else if (answer->icmp->type == ICMP_TIME_EXCEEDED) {
         answer->timeout = true;
-        // answer->packets_received++;
         answer->ttlExceeded = true;
         return;
     }
-    if (answer->icmp->type == ICMP_DEST_UNREACH) {
+    else if (answer->icmp->type == ICMP_DEST_UNREACH) {
         answer->unreachable = true;
         answer->timeout = true;
         answer->packet_loss++;

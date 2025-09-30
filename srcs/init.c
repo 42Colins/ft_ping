@@ -12,38 +12,43 @@ t_answer *initPing(t_ping *ping, t_answer *answer)
 
 void    initAnswer(t_answer *answer, t_ping *ping)
 {
-    if (ping->isTos)
-    {
-        answer->tos = ping->tos;
-        answer->isTos = ping->isTos;
-    }
-    else
-        answer->tos = 0;
-    answer->ttlExceeded = false;
-    answer->unreachable = false;    
-    answer->stddev = 0;
-    answer->packet_loss = 0;
-    answer->sent = true;
-    answer->size = ping->size;
-	answer->ttl = ping->ttl;
-	answer->verbose = ping->verbose;
-	answer->verboseError = false;
-    answer->bytes_sent = PACKET_SIZE;
-    answer->address = ping->address;
-    answer->icmp_ind = 0;
     answer->socketFd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
     if (answer->socketFd < 0)
         freeDuringInit(answer, ping);
+    answer->size = ping->size;
+    answer->ttl = ping->ttl;
+    answer->tos = ping->isTos ? ping->tos : 0;
+    answer->isTos = ping->isTos;
+    answer->ident = getpid() & 0xFFFF;
+    
+    answer->address = ping->address;
+    answer->sender_address = NULL;
+    
+    answer->icmp_ind = 0;
+    answer->sent = true;
+    answer->timeout = false;
+    answer->ttlExceeded = false;
+    answer->unreachable = false;
+    answer->received_ttl = 0;
+    
+    answer->id = getpid();
+    answer->icmp_type = 0;
+    answer->icmp_code = 0;
+    
     answer->packets_transmitted = 0;
     answer->packets_received = 0;
+    answer->packet_loss = 0;
     answer->min_time = 0;
     answer->max_time = 0;
     answer->total_time = 0;
     answer->total_time_squared = 0;
-	answer->id = getpid();
-    answer->timeout = false;
-    answer->count = ping->count;
+    answer->stddev = 0;
+    
+    answer->verbose = ping->verbose;
     answer->isCount = ping->isCount;
+    answer->count = ping->count;
+    answer->done = 255;
+    
     setSocket(answer, ping);
     getAddress(answer, ping);
     getSelfAddress(answer, ping);
@@ -51,7 +56,6 @@ void    initAnswer(t_answer *answer, t_ping *ping)
 
 void    setSocket(t_answer *answer, t_ping *ping)
 {
-    // int broadcast = 1;
     int on = 1;
     struct timeval error;
     error.tv_sec = 1;
@@ -60,8 +64,6 @@ void    setSocket(t_answer *answer, t_ping *ping)
         freeDuringInit(answer, ping);
     if (setsockopt(answer->socketFd, IPPROTO_IP, IP_TTL, &answer->ttl, sizeof(answer->ttl)) < 0)
         freeDuringInit(answer, ping);
-    // if (setsockopt(answer->socketFd, IPPROTO_IP, IP_RECVERR, &on, sizeof(on)) < 0)
-    //     freeDuringInit(answer, ping);
     if (setsockopt(answer->socketFd, IPPROTO_IP, IP_RECVTTL, &on, sizeof(on)) < 0)
         freeDuringInit(answer, ping);
     if (ping->isTos)
@@ -134,7 +136,6 @@ void    getSelfAddress(t_answer *answer, t_ping *ping)
             }
         }
     }
-    
     answer->selfAddress = strdup(ip_address);
     freeifaddrs(interfaces);
 }

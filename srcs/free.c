@@ -20,6 +20,8 @@ void	exitOnCount(t_answer *answer)
             free(answer->hostname);
         if (answer->selfAddress)
             free(answer->selfAddress);
+        if (answer->sender_address)
+            free(answer->sender_address);
         free(answer);
     }
     exit(0);

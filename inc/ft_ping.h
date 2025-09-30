@@ -20,14 +20,8 @@
 # include <ifaddrs.h>
 # include <errno.h>
 
-// Argument parser structure
-struct arguments {
-    bool verbose;
-    char *address;
-};
 
 // ICMP TYPES AND CODES BECAUSE THE NETINET/IP_ICMP.H IS NOT WORKING THE SAME ON MACOS
-
 #define ICMP_ECHOREPLY                0        
 #define ICMP_DEST_UNREACH        3        
 #define ICMP_SOURCE_QUENCH        4        
@@ -68,6 +62,7 @@ struct arguments {
 
 #define ICMP_EXC_TTL                0                        
 #define ICMP_EXC_FRAGTIME        1       
+
 // DEFINES
 
 # define PACKET_SIZE 64
@@ -96,48 +91,49 @@ typedef struct s_ping
 
 typedef struct s_answer
 {
-	unsigned int count;
-	bool isCount;
-	unsigned int done;
-	bool unreachable;
-	int  tos;
-	bool isTos;
-	int  size;
-	bool sent;
-	bool timeout;
-	unsigned int icmp_ind;
+	int ident;
 	int socketFd;
-	int	bytes_sent;
+	struct sockaddr_in dest;
 	char *packet;
+	int size;
+	int ttl;
+	int tos;
+	bool isTos;
+	
 	char *address;
 	char *addressN;
 	char *selfAddress;
 	char *hostname;
 	char *sender_address;
-	struct icmp_header *icmp;
-	int received;
-	unsigned long packet_loss;
-	int ttl;
-	int received_ttl;
-	double start_time;
-	double time;
-	bool verbose;
-	bool verboseError;
-	struct sockaddr_in dest;
-    unsigned int packets_transmitted;
-    unsigned int packets_received;
-    double min_time;
-    double max_time;
-    double total_time;
-	double total_time_squared;
-    double mdev;
-	double med_time;
-	double stddev;
-	struct ip *ip;
-    uint16_t id;
-	int  icmp_type;
-	int  icmp_code;
+	
+	unsigned int icmp_ind;
+	bool sent;
+	bool timeout;
+	bool unreachable;
 	bool ttlExceeded;
+	int received_ttl;
+	
+	struct icmp_header *icmp;
+	struct ip *ip;
+	int icmp_type;
+	int icmp_code;
+	uint16_t id;
+	
+	unsigned int packets_transmitted;
+	unsigned int packets_received;
+	unsigned long packet_loss;
+
+	double time;
+	double min_time;
+	double max_time;
+	double total_time;
+	double total_time_squared;
+	double stddev;
+
+	bool verbose;
+	bool isCount;
+	unsigned int count;
+	unsigned int done;
 }	t_answer;
 
 struct icmp_header {
@@ -147,12 +143,6 @@ struct icmp_header {
     uint16_t identifier;
     uint16_t sequence;
 };
-
-typedef struct icmp_codes_s {
-    int type;
-    int code;
-    char *diag;
-} icmp_codes_t;
 
 // PARSING
 t_ping *parseInputs(char **argv, int argc);

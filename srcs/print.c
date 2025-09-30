@@ -29,7 +29,10 @@ icmp_code_description_t icmp_code_description[] = {
 
 void	initPrint(t_answer *ping)
 {
-	printf("PING %s (%s): %d data bytes\n", ping->address, ping->addressN, ping->size - 8);
+	printf("PING %s (%s): %d data bytes", ping->address, ping->addressN, ping->size - 8);
+	if (ping->verbose)
+		printf (", id 0x%04x = %u", ping->ident, ping->ident);
+	printf("\n");
 }
 
 void	endPrint(t_answer *ping)
@@ -83,7 +86,7 @@ void	printVerbosePing(t_answer *ping)
 		cksum = ping->ip->ip_sum ? ntohs(ping->ip->ip_sum) : 0;
 	}
 	
-	ping->verboseError = true;
+	// Verbose error display
 	char *dst = charIp_to_hex(ping->addressN);
 	char *src = charIp_to_hex(ping->selfAddress);
 	
